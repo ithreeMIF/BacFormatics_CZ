@@ -1,0 +1,9 @@
+The 'Painting Mode' mode allows the user to add or remove pixels.
+First select the segmented image (the active channel) that will be visulized as blue crosses on top of displayed channel. 
+Each blue cross mark a pixel on the binary image (the segmented image).
+Config strel to define the spot shape and size of the painting tool. 
+Hold mouse left button and move mouse to add pixels (constractive) or hold mouse right button and move mouse to remove pixels (distractive).
+Press "s" key to accept the new binary image or press "f" key to format all recent modifications applied to the image.
+If user go to another image without saving (with "s" key), all recent modifications applied to the image will be removed.
+
+ 

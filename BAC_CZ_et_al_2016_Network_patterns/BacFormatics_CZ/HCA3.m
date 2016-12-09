@@ -1,0 +1,711 @@
+function varargout = HCA3(varargin)
+% HCA3 MATLAB code for HCA3.fig
+%      HCA3, by itself, creates a new HCA3 or raises the existing
+%      singleton*.
+%
+%      H = HCA3 returns the handle to a new HCA3 or the handle to
+%      the existing singleton*.
+%
+%      HCA3('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in HCA3.M with the given input arguments.
+%
+%      HCA3('Property','Value',...) creates a new HCA3 or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before HCA3_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to HCA3_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help HCA3
+
+% Last Modified by GUIDE v2.5 26-Apr-2016 13:13:48
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @HCA3_OpeningFcn, ...
+    'gui_OutputFcn',  @HCA3_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before HCA3 is made visible.
+function HCA3_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to HCA3 (see VARARGIN)
+
+% Choose default command line output for HCA3
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes HCA3 wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = HCA3_OutputFcn(hObject, eventdata, handles)
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+function pushbutton1_Callback(hObject, eventdata, handles)
+tic
+Npoints=50
+n_repeats=3
+n_exp=9
+
+n_cycles=20
+n_param=2
+
+
+C=jet(n_cycles)
+C2(:,1,:)=C;
+C2(:,2,:)=C/2;
+C2(:,3,:)=C/3;
+C2(:,4,:)=C/4;
+
+axes(handles.axes1)
+hold on
+plot_sector(n_exp,n_repeats,n_cycles,n_param,Npoints,C2)
+axis equal
+toc
+
+
+function plot_sector(n_exp,n_repeats,n_cycles,n_param,Npoints,C)
+
+for i = 1:n_repeats
+    for j = 1:n_exp
+        shift_x=(i-1)*35*2;
+        shift_y=(j-1)*35*2;
+        plot_sector2(n_cycles,n_param,Npoints,C,shift_x,shift_y,i,j)
+        
+    end
+end
+
+
+
+
+function plot_sector2(n_cycles,n_param,Npoints,C,shift_x,shift_y,i,j)
+global pathname filename_str SLength
+
+n_param=4
+ang = linspace(0,360,n_cycles+1);
+
+
+
+
+
+
+for ii=1:n_cycles
+    
+    theta1=ang(ii);
+    theta2=ang(ii+1);
+    
+    
+    theta = linspace(theta1/180*pi,theta2/180*pi,Npoints);
+    
+    Counter=0;
+    for jj=1:4
+        Counter=Counter+1;
+        if n_param==2
+            if jj==1
+                Rad1=2; Rad2=9;
+            elseif jj==2
+                Rad1=9; Rad2=16;
+            end
+        end
+        if n_param==4
+            if jj==1
+                Rad1=2; Rad2=9;
+            elseif jj==2
+                Rad1=9; Rad2=16;
+            elseif jj==3
+                Rad1=16; Rad2=23;
+            elseif jj==4
+                Rad1=23; Rad2=30;
+            end
+        end
+        
+        
+        
+        
+        
+        [arc1_x,arc1_y]=pol2cart(theta,Rad1);
+        [arc2_x,arc2_y]=pol2cart(theta,Rad2);
+        X=[arc1_x arc2_x(end:-1:1)];
+        Y=[arc1_y arc2_y(end:-1:1)];
+        
+        
+        h_patch(Counter) = patch(Y+shift_y,X+shift_x,C(ii,jj,:),'LineWidth',0.1);
+        set(h_patch(Counter),'UserData',[i j ii jj],'ButtonDownFcn', @move_poles_ButtonDown );
+    end
+end
+function move_poles_ButtonDown(src,event)
+
+get(src,'UserData')
+
+
+
+
+
+
+function pushbutton2_Callback(hObject, eventdata, handles)
+global pathname filename_str SLength
+
+pathname = uigetdir;
+if isequal(pathname,0)  %$#1
+    h = msgbox('User selected Cancel','Aborted');
+    return;
+end
+pathname =strcat(pathname,filesep);
+dir_filename=dir(pathname);
+jj=0;
+for ii=1:size(dir_filename,1)
+    if    isempty(findstr(dir_filename(ii).name,'tif'))~=1
+        jj=jj+1 ;
+    end
+end
+filename_str=cell(jj,1);
+jj=1;
+for ii=1:size(dir_filename,1)
+    if    isempty(findstr(dir_filename(ii).name,'tif'))~=1
+        filename_str(jj)=cellstr(dir_filename(ii).name) ; jj=jj+1;
+    end
+end
+
+ABC=['A';'B';'C';'D';'E';'F';'G';'H';'I';'J';'K';'L';'M';'N';'O';'P';'Q';'R';'S';'T';'U';'V';'W';'X';'Y';'Z'];
+
+SLength = inputdlg('Please input number of frames in one sequance','Input',1,{'4'});
+SLength=str2num(char(SLength));
+global Key_FITC
+% global Key_Cy3
+Key_FITC=[];
+% Key_Cy3=[];
+
+
+
+h=timebar_BACWrapper('Generate Keys. Please wait....','color','w');
+for ii=1:size(filename_str,1)
+    timebar_BACWrapper(h,ii/size(filename_str,1) )
+    
+    str= char(filename_str(ii));
+    
+    n=find(ismember(ABC,str(1)));
+    m=str2num(str(5:6));
+    f=str2num(str(12:13)); %field
+    
+    
+    ind=findstr(str,'time');
+    t=str2num(str(ind+4:ind+7));
+    
+    
+    
+    
+    %  x=floor(t/SLength);
+    %  y=t-x*SLength;
+    %
+    
+    
+    if  ~isempty(findstr(str,'FITC')) % default set by R,S,
+        
+        Key_FITC(n,m,f,t)=ii;
+    end
+    
+%     if isempty(findstr(str,'Cy3'))  % default set by R,S,
+%         Key_Cy3(n,m,f,t)=ii;
+%     end
+    
+    
+    
+    
+end
+
+close(h)
+
+function Untitled_1_Callback(hObject, eventdata, handles)
+
+
+function pushbutton3_Callback(hObject, eventdata, handles)
+Close
+global pathname Key_FITC    filename_str
+
+SE1 = strel('disk',2 ) ; H = fspecial('disk',2) ; SE2 = strel('disk',20 ) ;
+  h=timebar_BACWrapper('Segmention is running. Please wait....','color','w');
+Counter=0;
+for i1=1:size(Key_FITC,1) %n
+    for i2=1:size(Key_FITC,2) %m
+        for i3=1:size(Key_FITC,3) %f
+            for i4=1:size(Key_FITC,4) %t
+                Counter=Counter+1;
+                 timebar_BACWrapper(h,Counter/size(filename_str,1) )
+                
+                ind =Key_FITC(i1,i2,i3,i4) ;
+%                 ind2=Key_Cy3(i1,i2,i3,i4) ;
+%                 str1= char(filename_str(ind1));
+                str = char(filename_str(ind ));
+                %
+                %         full_filename1=char(strcat(pathname,filesep,str1));      temp1=imread_cross(full_filename1);
+                full_filename =char(strcat(pathname,filesep,str ));      temp =imread_cross(full_filename );
+                
+                
+                
+                
+                
+                %            temp1=double(temp1);
+                temp=double(temp );
+                %            temp1=uint8(255*(temp1./(max(temp1(:)))));
+                temp=uint8(255*(temp./(max(temp(:)))));
+                
+                %
+                
+                matrix=temp;
+%                                 figure(1)
+%                 imagesc(matrix)
+
+                
+                
+                
+                matrix  = conv2(double(matrix) ,H,'same'); %convolution
+                
+                
+                
+                matrix = imopen(matrix ,SE1) ;
+                
+                
+                
+                matrix=imtophat(matrix ,SE2);
+                
+                
+                matrix =  noisecomp_BACWrapper(matrix ,19,4);
+                
+                
+                
+                matrix  =medfilt2(matrix);
+                matrix=double(matrix);
+                
+                matrix= matrix./max(max(matrix));  matrix = uint8(255*matrix);
+                
+                
+                
+                %
+%                 figure(2)
+%                 imagesc(matrix)
+                
+                matrix=Segmention_function(matrix);
+%                  figure(3)
+%                  imagesc(matrix)
+%                  
+%                  pause
+                str3= regexprep(str,'choo.tif','choo_Segmented.tif') 
+                full_filename3=char(strcat(pathname,filesep,'ch00_Segmented',filesep,str3)) 
+                
+                
+                
+                imwrite(matrix,full_filename3)
+                
+                %
+                
+                
+                
+            end
+        end
+    end
+end
+close(h)
+
+
+
+
+
+
+function matrix=Segmention_function(matrix)
+% save matrix matrix
+
+% load  matrix
+SE = strel('disk',5 ) ;
+
+
+matrix3d=[];
+for ii=3:15
+    
+    BW = im2bw(matrix, 0.015*ii);  BW= imclose(BW,SE) ;   BW =bwareaopen(BW,500,4);    BW = imfill(BW,'holes');
+    
+    
+    
+    L=bwlabel(BW);
+    
+    
+    stats=regionprops(L,'MajorAxisLength','Area','Perimeter');
+    0
+    
+    Area=cat(1,stats.Area);
+    Perim =cat(1,stats.Perimeter);
+    Circularity=4*pi*Area./Perim.^2;
+    
+    
+    
+    idx1  = find(Circularity < 0.4 );
+    idx2  = find([stats.Area] >  1200);
+    idx3  = find([stats.Area]  <10000);
+    idx4  = find([stats.MajorAxisLength]>100);
+    idx5  = find([stats.MajorAxisLength]<600);
+    
+    idx= intersect(idx1,idx2);
+    idx= intersect(idx ,idx3);
+    idx= intersect(idx ,idx4);
+    idx= intersect(idx ,idx5);
+    
+    
+    BW= ismember(L,idx) ;
+    
+    matrix3d(:,:,ii)=BW;
+end
+
+
+matrix=mean(matrix3d,3);
+matrix=matrix>0;
+matrix=imclose(matrix,strel('disk',6));
+matrix=imfill(matrix,'holes');
+
+
+%
+%      figure(1)
+%  imagesc(matrix)
+%
+
+matrix_erode=bwmorph(matrix,'erode',2);
+matrix_thin=bwmorph(matrix_erode,'thin',inf);
+matrix_endpoints=bwmorph(matrix_thin,'endpoints');
+%   remove segments that has more than two terminaton points:
+L= bwlabel(matrix,4) ;
+matrix2= double( matrix_endpoints).*double(L);
+matrix_vec=matrix2(:);
+matrix_vec( matrix_vec==0)=[];
+z=hist( matrix_vec,max( matrix_vec));
+%     assumption: there are at leaast two termination points, or more:
+ind2=find(z==2);ind3=find(z==3);ind4=find(z==4);ind5=find(z==5);ind6=find(z==6);ind7=find(z==7);
+matrix=ismember(L,[ind2 ind3 ind4 ind5 ind6 ind7]);
+%%%%%%%%%%%%%%%%
+matrix =bwmorph(matrix,'dilate', 1);
+%   figure(3)
+%  imagesc(matrix)
+
+
+function pushbutton4_Callback(hObject, eventdata, handles)
+Generate_sector_data1
+% ---------------------------------
+function Generate_sector_data1
+global pathname Key_FITC    filename_str SLength Data1 Data2 Data3
+Data1=[];Data2=[];Data3=[];
+h=timebar_BACWrapper('Generate data 1. Please wait....','please wait','w');
+Counter=0;
+for n = 1:size(Key_FITC,1)
+    for m = 1:size(Key_FITC,2)
+         
+        timebar_BACWrapper(h,Counter/size(filename_str,1) )
+        for f=1:size(Key_FITC,3)
+            for s=1:size(Key_FITC,4)/SLength
+                Counter=Counter+1;
+    %                 ---------------------------------             
+                 try % loading images
+                    BW=[];
+                    for ss=1:SLength
+                        t=s*SLength+ss ;
+                        ind1=Key_FITC(n,m,f,t) ;
+                        
+                        
+                           str = char(filename_str(ind1));
+                       
+                        full_filename1=char(strcat(pathname,filesep,str));    temp1(:,:,ss)=imread_cross(full_filename1);
+                     
+                        str3= regexprep(str ,'choo.tif','choo_Segmented.tif');
+                        
+                        full_filename3=char(strcat(pathname,filesep,'ch00_Segmented',filesep,str3));
+                        BW(:,:,ss)=imread_cross(full_filename3) ;
+                        
+                        
+                    end
+                 end 
+%                 --------------------------------- 
+  try %quantify kil rate
+                    vec1=nan(1,SLength-1);  
+                    for ss=1:SLength-1
+                        matrix1=BW(:,:,ss);matrix2=BW(:,:,ss+1);
+                        L1=bwlabel(matrix1); L2=bwlabel(matrix2); 
+                        if max(L1(:))==0 | max(L2(:))==0
+                            vec1(ss)=nan; 
+                        else
+                            matrix3 =L1+L2;matrix3=matrix3==2; 
+                            n_Killed1=0;
+                            for ii=1:max(L1(:))
+                                matrix11=L1==ii;matrix33=matrix3.*matrix11;
+                                Overlap=sum(matrix33(:))/sum(matrix11(:));
+                                if Overlap>0.5 %default set by R.S.
+                                    n_Killed1=n_Killed1+1;
+                                end
+                            end
+                            n_Killed2=0;
+                            for ii=1:max(L2(:))
+                                matrix22=L2==ii;matrix33=matrix3.*matrix22;
+                                Overlap=sum(matrix33(:))/sum(matrix22(:));
+                                if Overlap>0.5 %default set by R.S.
+                                    n_Killed2=n_Killed2+1;
+                                end
+                            end
+                             vec1(ss)=(n_Killed1+n_Killed2)/(max(L1(:))+max(L2(:))); 
+                        end
+                    end 
+                    Data1.Data{n,m,f,s}=nanmean(vec1);
+                  catch
+                      Data1.Data{n,m,f,s}=nan;
+                  end
+%                 ---------------------------------  
+  try %quantify number of detected worms
+    vec2=nan(1,SLength);
+    for ss=1:SLength
+        matrix1=BW(:,:,ss);
+        L1=bwlabel(matrix1);
+        vec2(ss)=max(L1(:));
+    end 
+    Data2.Data{n,m,f,s}=nanmean(vec2);
+  catch
+     Data2.Data{n,m,f,s}=nan;
+  end
+%                 ---------------------------------             
+ %                 ---------------------------------  
+  try % quantify average fluoresence FITC
+    vec3=nan(1,SLength);
+    for ss=1:SLength
+         matrix1=BW(:,:,ss);
+         matrix2=double(matrix1).*double(temp1(:,:,ss)); 
+         vec3(ss)=sum(matrix2(:))/sum(matrix1(:));
+    end 
+    Data3.Data{n,m,f,s}=nanmean(vec3);
+  catch
+      Data3.Data{n,m,f,s}=nan;
+  end
+             
+ 
+%                 ---------------------------------            
+                
+                
+            end
+        end
+    end
+end
+close(h)
+
+function pushbutton5_Callback(hObject, eventdata, handles)
+
+global Data1  
+global Data
+Data=Data1.Data
+Counter=0;
+try
+    
+    close(1)
+    
+end
+figure 
+
+for n = 1:size(Data,1)
+    for m = 1:size(Data,2) 
+     
+        
+        Counter=Counter+1
+        
+        subplot(size(Data,1),size(Data,2),  Counter);
+        
+        matrix=nan(size(Data,3),size(Data,4));
+        for f=1:size(Data,3)
+            for s=1:size(Data,4)
+                matrix(f,s)= Data{n,m,f,s};
+            end
+        end
+         
+        %                   plot(mean(rot90(matrix),2))
+         y=rot90(matrix);
+%          save y y 
+%          pause
+         x=1:length(y);x=x';
+         
+         x(find(isnan(y)))=[]; y(find(isnan(y)))=[];
+         
+        [p,~,mu] = polyfit(x, y, 2);
+        
+        f = polyval(p,x,[],mu);
+      
+        line( x,y ,'LineStyle','none','Marker','+','MarkerSize',4,'Color','r')%Hitt  ;
+          hold on
+        plot(x,f,'b')
+          hold off
+ 
+
+%         
+%         plot(rot90(matrix))
+        xlabel(num2str([m n Counter]))
+        axis tight
+        %                 imagesc(matrix)
+        
+        
+    end
+end
+
+axes(handles.axes1)
+
+Plot_sector_data1
+% ---------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+function Plot_sector_data1
+global    SLength  CC   Data_vec
+CC=jet(100);
+
+global Data1
+global Data
+Data=Data1.Data
+figure
+% maxi=nanmax( Data_vec(:));
+ang = linspace(0,360,size(Data,4)+1);
+
+ 
+
+
+Data_vec=[];
+ Counter=1;
+for n = 1:size(Data,1)
+    for m = 1:size(Data,2)
+      for f=1:size(Data,3)
+         for s=1:size(Data,4) 
+          Data_vec(Counter)=Data{n,m,f,s};
+          Counter=Counter+1;
+          
+      end
+    end
+end
+end
+ maxi=nanmax( Data_vec(:));
+          
+ Npoints=50
+Counter=0;       
+        
+        
+for n = 1:size(Data,2)
+    for m = 1:size(Data,1)
+        
+        shift_y=(n-1)*18*SLength;
+        shift_x=(m-1)*18*SLength;
+        
+        for f=1:size(Data,3)
+            
+            if size(Data,3)==4
+                if f==1
+                    Rad1=2; Rad2=9;
+                elseif f==2
+                    Rad1=9; Rad2=16;
+                elseif f==3
+                    Rad1=16; Rad2=23;
+                elseif f==4
+                    Rad1=23; Rad2=30;
+                end
+            end
+            
+                        if size(Data,3)==1
+                if f==1
+                    Rad1=10; Rad2=30;
+                end
+                        end
+
+            
+            
+            for s=1:size(Data,4)
+                
+                theta1=ang(s);
+                theta2=ang(s+1);
+                theta = linspace(theta1/180*pi,theta2/180*pi,Npoints);
+                
+                
+                [arc1_x,arc1_y]=pol2cart(theta,Rad1);
+                [arc2_x,arc2_y]=pol2cart(theta,Rad2);
+                X=[arc1_x arc2_x(end:-1:1)];
+                Y=[arc1_y arc2_y(end:-1:1)];
+                
+                
+                %%%%%%%%%%%%%%%
+                temp_Data=Data{m,n,f,s}; 
+                
+                
+                temp_Data= round(100*(temp_Data/maxi));
+                if temp_Data==0
+                    temp_Data=1;
+                end
+                
+                if ~isnan(temp_Data)
+                    C=CC(temp_Data,:);
+                else
+                    C=[1 1 1];
+                end
+                
+                
+                Counter=Counter+1;
+                h_patch(Counter) = patch(Y+shift_y,X+shift_x,C,'LineWidth',0.1);
+                set(h_patch(Counter),'UserData',[m n f s],'ButtonDownFcn', @move_poles_ButtonDown );
+            end
+        end
+    end
+end
+
+% ---------------------
+
+
+
+
+
+
+
+function pushbutton6_Callback(hObject, eventdata, handles)
+load Data3
+global Data
+Data=Data3.Data;
+msgbox('ready')
+function pushbutton7_Callback(hObject, eventdata, handles)
+global CC
+C=jet(100);
+CC=change_LUT2(C);
+
+
+function pushbutton7_CreateFcn(hObject, eventdata, handles)

@@ -1,0 +1,10 @@
+The 'Merge Cells' mode allows the user to merge selected segemnts. 
+Mouse right click on a pointed cell to select or un-select cells.
+Pixels belong to the selected cells are marked in yellow crosses.
+When a cell is un-selected the yellow crosses will disapear for that cell.
+Mouse left click apply a merge between the selected cells.
+The merge is done by closing the gap between the yellow marked pixels.
+The User has to define the morphological structuring element (strel) that control the closing opperation.
+If the strel is smaller than the gap, the gap cannot be close.
+If the strel is much larger, there  will be over-estimation of the cells border.
+Choose the strel carefully.

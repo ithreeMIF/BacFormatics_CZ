@@ -1,0 +1,3 @@
+The 'Edit Association' mode allows the user to manually associate between cells.
+Edit the association by streching lines between the cells center.
+Click on "Fix assoication" icon (small icon) to save changes. 

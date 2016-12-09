@@ -1,0 +1,180 @@
+This version of BacFormatics was used to calculate single-cell growth rates for the work entitled 
+
+“Network patterns in exponentially growing 2D biofilms” by Cameron Zachreson, Xinhui Yap, Erin Gloag, Cynthia Whitchurch, and Milos Toth 
+
+It is optimized for high-magnification phase-contrast images of bacteria. Segmentation is achieved using the set of functions contained in the folder. This software requres MATLAB and this version was constructed using version MATLAB 15b, so it may not work with older versions.  
+
+BacFormatics_CZ > Cams_PA_filter
+
+followed by segment exclusion using local maxima obtained from the original unfiltered image
+
+The GUI is still in beta and was not modified for this work. Specific instructions for use are as follows: 
+
+The software operates on sets of greyscale TIFF images, to ensure proper ordering these should be labelled as follows (for example): 
+
+‘filename_t_001.tif’  
+‘filename_t_002.tif’
+
+.
+.
+.
+ 
+‘filename_t_999.tif’ 
+
+Note: make sure there are enough padding zeros so that the time label for all images has the same number of digits
+
+
+In MATLAB, navigate to the BacFormatics_CZ directory 
+
+
+to start the software enter
+
+>> bac 
+
+into the command line
+
+BacFormatics should open and a menu bar should appear, navigate to
+
+file > load > Select by Folder
+
+a window should open allowing you to navigate to the directory containing your images
+
+a window will appear asking if you wish to add padding zeros to time labels in the filenames, if you have already done so you can select ‘no’, if not, this function will do that for you as long as the time label is at the end of the filename and is preceded by an underscore like this: filename_1.tif , filename_2.tif etc.. 
+
+the next window asks if you would like to normalize and save as 8-bit, click yes, an input window will appear asking for a mean intensity value, the default 120 should be appropriate
+
+the next two windows ask you if you would like to save the images to memory, select ‘no’ for both 
+
+the program then creates an experiment (.dat) file and several directories that will be used to hold the local maxima, filtered, and segmented images necessary for image processing. These are created in the directory containing the images. 
+
+The first image should appear in a window with arrow buttons in the top left and right corners, these expand the frame to include options. the button in the upper right with the < symbol allows the user to scroll through the stack of images (with the up and down arrow keys), it is a good idea to verify the image order is correct. 
+
+after verifying image order, in the upper menubar navigate to 
+
+Process > Segment > Segmentation Module
+
+a new window will open with a number of lists and options. The original image should appear in the subwindow on the far left. 
+
+below that subwindow there is a button displaying ‘Ch_00’ next to a button displaying ‘raw’ above a list of image filenames, these are the original images 
+
+in the box just to the right of the image list, there are several buttons displaying ‘Select:’ these can be used to apply operations to the images in the list
+
+when clicked, these buttons turn into drop-down menus with a selection of filters and operations. To identify local maxima, select the following filters (in order) 
+
+
+30 - imrode 
+(set the associated slider bar value to 1, Note: this is a typo on the matlab operation imerode)
+
+18 - convert to 8 bits
+
+19 - invert image(to…
+
+24 - Local intensity m… 
+(this option has a slider bar, set this value to 65)
+
+Select: 
+(Note - leave this last option unused, only the above 4 operations are required)
+
+
+
+below the list of operations change ‘Filter current frame…’ to ‘Batch filter of all frames’
+
+now the user must specify into which folder the result of these operations will be exported
+
+to the right of the list of operations there is another set of buttons specifying ‘Ch_##’ and ‘filtered’ 
+
+click on ‘Ch_00’ and change it to ‘Ch_01’ this will save the processed images into the folder entitled ‘Ch_01_filtered’  
+
+click the ’Filter’ button below the list of operations, the program will apply the specified operations to each image and save the result into the specified directory
+
+the processed images containing local maxima should appear in the center panel and a new list of images should appear in the box under the ‘Ch_01’ button. 
+
+The operation list to the right of the new list of images should be left empty (this is where segmentation operations will be specified, but for this step no segmentation is necessary) 
+
+below the empty segmentation operation list, change ‘Segment current frame’ to ‘Batch segmentation’,
+
+above the empty image list to the right change ‘Ch_00’ to ‘Ch_01’ and click ‘Segment’
+
+this will populate the folder entitled ‘Ch_01_Segmented’ with the tiff series containing local intensity maxima. 
+
+Now it is time to perform image segmentation 
+
+Change all Ch_## buttons to Ch_00
+
+change the first filter operation from 
+
+30-imrode 
+
+to 
+
+Cams P.A. filter
+
+and remove the others by setting them to
+
+Select: 
+
+click ‘Filter’
+
+the resulting image list should have isolated the bodies of the cells and removed the background.
+
+In the segmentation operations, select 
+
+51-binarize
+10-remove segments…
+
+and click ’Segment’
+
+That’s the end of the segmentation workflow, this should have created a list of binary images in the folder ‘Ch_00_Segmented’ that showing the bodies of each cell
+
+The next steps are cell identification, tracking, and data export 
+
+close the segmentation module window and go back to the first window
+
+on the bottom of this window there is a dropdown displaying Ch_00 and ‘raw’
+
+Change ‘raw’ to ’segmented’
+
+now you can use the arrow keys to scroll through the list of segmented images to check the quality of segmentation. If it is satisfactory, you can proceed with cell identification and tracking, if manual corrections are necessary I suggest doing them in imagej, using the paintbrush and eraser tools. BacFormatics is supposed to be able to facilitate manual corrections, but that functionality is very much in beta. 
+
+To track the cell positions and orientations, click the button in the upper left corner with the > symbol 
+
+in the menu that appears, click the rod-shaped icon second from the top on the left, this identifies cells in each frame and generates their characteristics. In the window that opens, select the parameters of interest, I recommend leaving the defaults in place. click ‘Save and exit’.
+
+The program will go through and identify the selected characteristics of each cell. These can be observed by clicking the corresponding menu item in the ‘visualization: ’ box on the right. Check that the centroids and orientations are satisfactory by clicking on the corresponding boxes (‘Show major axis’, and ‘Show centroid’). The mouse wheel can be used to zoom, but be careful with this feature because it is not stable and allows the user to zoom out until the image is lost. Pushing the mouse wheel in allows the user to drag the image around. 
+
+After verifying that the centroids, lengths, and orientations are ok, click the button just below the labelling button (which should now have turned red) that looks like some balls connected by sticks. This calls the tracking function ‘cams_naive_neighbors’ which uses minimum distance criteria to track cell movements, this function will only work if the movements of cells between frames are smaller than their nearest neighbor distances which in dense configurations is approximately the cell width. 
+
+Select the maximum distance (in pixels) that a cell can possibly move, movements larger than this will not be tracked. For the dataset in the publication noted in the preamble, this was set to 20 pixels. 
+
+now, click the button with the ‘lightening bolt’ just below the ‘balls connected by sticks’ icon which uses the tracking data to assign consistent ids for each cell for every frame in which it is tracked consistently. This allows the cell characteristics like position and orientation to be assigned in a convenient data matrix. 
+
+Once this is done, the data can be exported. 
+
+
+in the top menubar, navigate to 
+
+File > Export > Export data matrix
+
+and type the name of a data type to export
+
+(this creates a text file with a tab delimited matrix, the column index is cell ID and the row index is the timestep)
+ 
+Each of the following parameters should be exported (their names are case-sensitive)
+
+ Centroid - exports two matrices, one with X coordinates and one with Y coords 
+
+ Orientation - exports one matrix with the orientation in radians
+
+ MajorAxisLength - exports one matrix with the cell length from tip to tip 
+
+
+Then you are done. The morphological data is not stored in the .dat file, so if you want to export different parameters or re-track after closing the program you have to perform labelling again. 
+
+Good Luck! 
+
+- Cameron Zachreson
+
+P.S. we hope to have a user-friendly, flexible version of this program complete by August 2017
+ 
+
+
